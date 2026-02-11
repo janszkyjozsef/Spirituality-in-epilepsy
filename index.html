@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Epilepsy & Spirituality Study</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --success: #27ae60;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --text-muted: #6c757d;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: var(--dark);
+            transition: all 0.3s ease;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .lang-switch {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid white;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        
+        .lang-switch:hover {
+            background: rgba(255,255,255,0.4);
+        }
+
+        .authors-toggle {
+            font-size: 0.9rem;
+            text-decoration: underline;
+            cursor: pointer;
+            opacity: 0.9;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        .authors-list {
+            display: none;
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            max-width: 600px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 15px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 900px) {
+            .container { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+
+        .card:hover { transform: translateY(-2px); }
+
+        h2 { 
+            color: var(--primary); 
+            border-left: 5px solid var(--secondary); 
+            padding-left: 10px; 
+            margin-top: 0; 
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: var(--light);
+            padding: 20px 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-bottom: 3px solid var(--secondary);
+        }
+        
+        .stat-value { font-size: 2rem; font-weight: bold; color: var(--primary); }
+        .stat-label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; margin-top: 5px; }
+
+        .simulator {
+            background: #eef2f3;
+            border: 1px solid #dee2e6;
+        }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .form-group select { 
+            width: 100%; 
+            padding: 10px; 
+            border-radius: 6px; 
+            border: 1px solid #ccc;
+            background: white;
+        }
+
+        .result-meter {
+            height: 25px;
+            background: #dcdcdc;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        .result-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--success));
+            width: 0%;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .prediction-text {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .glossary-item {
+            border-bottom: 1px solid #eee;
+            padding: 12px 0;
+        }
+        .glossary-item:last-child { border-bottom: none; }
+        .glossary-term { font-weight: bold; color: var(--secondary); cursor: help; font-size: 1.1rem; }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid #e1e4e8;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-content">
+        <div>
+            <h1 id="title">Spiritualitás az Epilepsziában</h1>
+            <p id="subtitle">A magyar kutatás interaktív adatvizualizációja</p>
+            <div class="authors-toggle" onclick="toggleAuthors()" id="authorsBtn">Szerzők mutatása ▼</div>
+            <div class="authors-list" id="authorsList">
+                <strong>Szerzők / Authors:</strong> József Janszky jr., Dalma Tényi, Réka Horváth, Csilla Gyimesi, Beáta Bóné, Márton Tóth, Zoltán Vörös, Norbert Kovács, József Janszky, Tamás Tényi.<br>
+                <em>University of Pécs / Pécsi Tudományegyetem</em>
+            </div>
+        </div>
+        <button class="lang-switch" onclick="toggleLang()">🇭🇺 HU / 🇬🇧 EN</button>
+    </div>
+</header>
+
+<div class="container">
+    <div class="main-col">
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="stat-value">129</div>
+                <div class="stat-label" data-i18n="stat_patients">Betegszám</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">1.86</div>
+                <div class="stat-label" data-i18n="stat_inspirit">Átlag INSPIRIT-R pont</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">30.2%</div>
+                <div class="stat-label" data-i18n="stat_nonreligious">Egyáltalán nem vallásos</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 data-i18n="chart_title_global">Globális Kontextus</h2>
+            <p data-i18n="chart_desc_global">A magyar betegek spiritualitási szintjének összehasonlítása nemzetközi adatokkal.</p>
+            <canvas id="countryChart" height="140"></canvas>
+        </div>
+
+        <div class="card">
+            <h2 data-i18n="chart_title_clinical">Klinikai Összefüggések</h2>
+            <p data-i18n="chart_desc_clinical">A magas spiritualitás aránya az egyes klinikai alcsoportokban.</p>
+            <canvas id="clinicalChart" height="140"></canvas>
+        </div>
+
+        <div class="card">
+            <h2 data-i18n="glossary_title">Orvosi Fogalomtár</h2>
+            <div class="glossary-item">
+                <span class="glossary-term" data-i18n="term_aura">Izolált Aura</span>
+                <p data-i18n="def_aura">Olyan fokális roham, amely szubjektív érzetekben nyilvánul meg (pl. déjà vu, gyomortáji érzés), de nem torkollik rángógörcsbe. A kutatás szerint ez szignifikánsan növeli a spiritualitást.</p>
+            </div>
+            <div class="glossary-item">
+                <span class="glossary-term">INSPIRIT-R</span>
+                <p data-i18n="def_inspirit">A spirituális élmények mérésére szolgáló, nemzetközileg validált standardizált kérdőív (Index of Core Spiritual Experiences).</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="side-col">
+        <div class="card simulator">
+            <h2 data-i18n="sim_title">Predikció Kalkulátor</h2>
+            <p data-i18n="sim_desc">Számolja ki a magas spiritualitás valószínűségét a tanulmány logisztikus regressziós esélyhányadosai (OR) alapján.</p>
+            
+            <div class="form-group">
+                <label data-i18n="label_income">Havi Jövedelem</label>
+                <select id="incomeInput" onchange="calculateProbability()">
+                    <option value="high" data-i18n="opt_high_inc">Magas (>250.000 Ft)</option>
+                    <option value="low" data-i18n="opt_low_inc">Alacsony (<250.000 Ft) [OR 3.5]</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label data-i18n="label_seizure">Rohamállapot</label>
+                <select id="seizureInput" onchange="calculateProbability()">
+                    <option value="active" data-i18n="opt_active">Aktív rohamok</option>
+                    <option value="free" data-i18n="opt_free">Rohammentes (>1 év) [OR 2.8]</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label data-i18n="label_aura">Aura Típus</label>
+                <select id="auraInput" onchange="calculateProbability()">
+                    <option value="none" data-i18n="opt_no_aura">Nincs / Nem izolált</option>
+                    <option value="isolated" data-i18n="opt_iso_aura">Izolált Aurák [OR 3.0]</option>
+                </select>
+            </div>
+
+            <div class="result-meter">
+                <div class="result-fill" id="probBar"></div>
+            </div>
+            <div class="prediction-text" id="probText">Alapértelmezett Esély</div>
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ccc;">
+            <small style="display:block; color:#666; font-style: italic;" data-i18n="sim_note">
+                *A modell a tanulmány többváltozós regressziójára épül: Alacsony jövedelem (OR: 3.5), Rohammentesség (OR: 2.8), Izolált aura (OR: 3.0).
+            </small>
+        </div>
+
+        <div class="card">
+            <h2 data-i18n="insight_title">Főbb Felismerések</h2>
+            <ul style="padding-left: 20px; line-height: 1.6;">
+                <li data-i18n="insight_1">A magyar betegek spiritualitási pontszáma sokkal alacsonyabb, mint más országoké, ami a társadalom szekularizációját tükrözi.</li>
+                <li style="margin-top:12px;" data-i18n="insight_2"><strong>Klinikai paradoxon:</strong> A viszonylag enyhébb lefolyású epilepszia (rohammentesség, izolált aurák megléte) paradox módon MAGASABB spiritualitással párosul.</li>
+                <li style="margin-top:12px;" data-i18n="insight_3">A vallási hovatartozás és a pszichiátriai társbetegségek nem bizonyultak szignifikáns prediktornak.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>Based on the study: <em>Spirituality in epilepsy - A Hungarian study</em>. Epilepsy & Behavior.<br>
+    Interactive data visualization for educational and review purposes.</p>
+</footer>
+
+<script>
+    let currentLang = 'hu';
+    let countryChart, clinicalChart;
+    
+    const translations = {
+        en: {
+            title: "Spirituality in Epilepsy",
+            subtitle: "Interactive Data Visualization of the Hungarian Study",
+            authorsBtn: "Show Authors ▼",
+            authorsBtnHide: "Hide Authors ▲",
+            stat_patients: "Patients",
+            stat_inspirit: "Avg. INSPIRIT-R Score",
+            stat_nonreligious: "Not Religious at all",
+            chart_title_global: "Global Context",
+            chart_desc_global: "Comparing the average spirituality scores of Hungarian patients with international data.",
+            chart_title_clinical: "Clinical Correlations",
+            chart_desc_clinical: "Percentage of patients with High Spirituality in specific subgroups.",
+            glossary_title: "Medical Glossary",
+            term_aura: "Isolated Aura",
+            def_aura: "A focal seizure manifesting as subjective sensations (e.g., déjà vu, abdominal rising) without progressing to a convulsive seizure. Significantly linked to higher spirituality.",
+            def_inspirit: "INSPIRIT-R: Index of Core Spiritual Experiences. A standardized questionnaire used internationally.",
+            sim_title: "Predictor Calculator",
+            sim_desc: "Calculate the likelihood of high spirituality based on the study's Logistic Regression Odds Ratios (OR).",
+            label_income: "Monthly Income",
+            opt_high_inc: "High (>250k HUF)",
+            opt_low_inc: "Low (<250k HUF) [OR 3.5]",
+            label_seizure: "Seizure Status",
+            opt_active: "Active Seizures",
+            opt_free: "Seizure Free (>1 yr) [OR 2.8]",
+            label_aura: "Aura Type",
+            opt_no_aura: "No / Non-isolated",
+            opt_iso_aura: "Isolated Auras [OR 3.0]",
+            sim_note: "*Based on multivariate regression: Low Income (OR 3.5), Seizure Freedom (OR 2.8), Isolated Aura (OR 3.0).",
+            insight_title: "Key Insights",
+            insight_1: "Hungarian patients show significantly lower spirituality compared to other countries, reflecting societal secularization.",
+            insight_2: "<strong>Clinical Paradox:</strong> Milder epilepsy courses (seizure freedom, isolated auras) paradoxically align with HIGHER spirituality.",
+            insight_3: "Formal religious affiliation and psychiatric comorbidities were not significant predictors.",
+            prob_low: "Low Probability",
+            prob_med: "Increased Probability",
+            prob_high: "High Probability",
+            prob_very_high: "Very High Probability",
+            chart_label_countries: "INSPIRIT-R Score",
+            chart_label_clin: "% High Spirituality"
+        },
+        hu: {
+            title: "Spiritualitás az Epilepsziában",
+            subtitle: "A magyar kutatás interaktív adatvizualizációja",
+            authorsBtn: "Szerzők mutatása ▼",
+            authorsBtnHide: "Szerzők elrejtése ▲",
+            stat_patients: "Betegszám",
+            stat_inspirit: "Átlag INSPIRIT-R pont",
+            stat_nonreligious: "Egyáltalán nem vallásos",
+            chart_title_global: "Globális Kontextus",
+            chart_desc_global: "A magyar betegek spiritualitási szintjének összehasonlítása nemzetközi adatokkal.",
+            chart_title_clinical: "Klinikai Összefüggések",
+            chart_desc_clinical: "A magas spiritualitás aránya az egyes klinikai alcsoportokban.",
+            glossary_title: "Orvosi Fogalomtár",
+            term_aura: "Izolált Aura",
+            def_aura: "Olyan fokális roham, amely szubjektív érzetekben nyilvánul meg (pl. déjà vu, gyomortáji érzés), de nem torkollik rángógörcsbe. A kutatás szerint ez szignifikánsan növeli a spiritualitást.",
+            def_inspirit: "A spirituális élmények mérésére szolgáló, nemzetközileg validált standardizált kérdőív (Index of Core Spiritual Experiences).",
+            sim_title: "Predikció Kalkulátor",
+            sim_desc: "Számolja ki a magas spiritualitás valószínűségét a tanulmány logisztikus regressziós esélyhányadosai (OR) alapján.",
+            label_income: "Havi Jövedelem",
+            opt_high_inc: "Magas (>250.000 Ft)",
+            opt_low_inc: "Alacsony (<250.000 Ft) [OR 3.5]",
+            label_seizure: "Rohamállapot",
+            opt_active: "Aktív rohamok",
+            opt_free: "Rohammentes (>1 év) [OR 2.8]",
+            label_aura: "Aura Típus",
+            opt_no_aura: "Nincs / Nem izolált",
+            opt_iso_aura: "Izolált Aurák [OR 3.0]",
+            sim_note: "*A modell a tanulmány többváltozós regressziójára épül: Alacsony jövedelem (OR: 3.5), Rohammentesség (OR: 2.8), Izolált aura (OR: 3.0).",
+            insight_title: "Főbb Felismerések",
+            insight_1: "A magyar betegek spiritualitási pontszáma sokkal alacsonyabb, mint más országoké, ami a társadalom szekularizációját tükrözi.",
+            insight_2: "<strong>Klinikai paradoxon:</strong> A viszonylag enyhébb lefolyású epilepszia (rohammentesség, izolált aurák megléte) paradox módon MAGASABB spiritualitással párosul.",
+            insight_3: "A vallási hovatartozás és a pszichiátriai társbetegségek nem bizonyultak szignifikáns prediktornak.",
+            prob_low: "Alacsony Valószínűség",
+            prob_med: "Emelkedett Valószínűség",
+            prob_high: "Magas Valószínűség",
+            prob_very_high: "Nagyon Magas Valószínűség",
+            chart_label_countries: "INSPIRIT-R Pontszám",
+            chart_label_clin: "% Magas Spiritualitás"
+        }
+    };
+
+    function initCharts() {
+        const ctxCountry = document.getElementById('countryChart').getContext('2d');
+        countryChart = new Chart(ctxCountry, {
+            type: 'bar',
+            data: {
+                labels: ['Magyarország', 'Litvánia', 'USA (Krónikus)', 'Brazília'],
+                datasets: [{
+                    label: translations[currentLang].chart_label_countries,
+                    data: [1.86, 2.45, 2.8, 3.11],
+                    backgroundColor: ['#e74c3c', '#95a5a6', '#3498db', '#2ecc71'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, max: 4 } }
+            }
+        });
+
+        const ctxClin = document.getElementById('clinicalChart').getContext('2d');
+        clinicalChart = new Chart(ctxClin, {
+            type: 'bar',
+            data: {
+                labels: ['Rohammentes', 'Nem rohammentes', 'Izolált Aura', 'Nincs I. Aura'],
+                datasets: [{
+                    label: translations[currentLang].chart_label_clin,
+                    data: [57, 34, 39, 22],
+                    backgroundColor: ['#3498db', '#bdc3c7', '#9b59b6', '#bdc3c7'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true, max: 100 } }
+            }
+        });
+    }
+
+    function toggleAuthors() {
+        const list = document.getElementById('authorsList');
+        const btn = document.getElementById('authorsBtn');
+        const t = translations[currentLang];
+        
+        if (list.style.display === 'block') {
+            list.style.display = 'none';
+            btn.innerHTML = t.authorsBtn;
+        } else {
+            list.style.display = 'block';
+            btn.innerHTML = t.authorsBtnHide;
+        }
+    }
+
+    function toggleLang() {
+        currentLang = currentLang === 'en' ? 'hu' : 'en';
+        updateDOM();
+    }
+
+    function updateDOM() {
+        const t = translations[currentLang];
+        
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (t[key]) el.innerHTML = t[key];
+        });
+
+        document.getElementById('title').textContent = t.title;
+        document.getElementById('subtitle').textContent = t.subtitle;
+        
+        countryChart.data.labels = currentLang === 'en' ? 
+            ['Hungary', 'Lithuania', 'USA', 'Brazil'] : 
+            ['Magyarország', 'Litvánia', 'USA', 'Brazília'];
+        countryChart.data.datasets[0].label = t.chart_label_countries;
+        countryChart.update();
+
+        clinicalChart.data.labels = currentLang === 'en' ?
+            ['Seizure Free', 'Not Seizure Free', 'Isolated Aura', 'No Isolated Aura'] :
+            ['Rohammentes', 'Nem rohammentes', 'Izolált Aura', 'Nincs I. Aura'];
+        clinicalChart.data.datasets[0].label = t.chart_label_clin;
+        clinicalChart.update();
+
+        calculateProbability();
+        
+        const list = document.getElementById('authorsList');
+        if (list.style.display === 'none') {
+            document.getElementById('authorsBtn').innerHTML = t.authorsBtn;
+        } else {
+            document.getElementById('authorsBtn').innerHTML = t.authorsBtnHide;
+        }
+    }
+
+    function calculateProbability() {
+        const t = translations[currentLang];
+        const income = document.getElementById('incomeInput').value;
+        const seizure = document.getElementById('seizureInput').value;
+        const aura = document.getElementById('auraInput').value;
+
+        let score = 0;
+        let maxScore = 3;
+
+        if (income === 'low') score += 1;
+        if (seizure === 'free') score += 1;
+        if (aura === 'isolated') score += 1;
+
+        const percentage = (score / maxScore) * 100;
+        const bar = document.getElementById('probBar');
+        bar.style.width = (percentage === 0 ? 5 : percentage) + "%";
+
+        const textEl = document.getElementById('probText');
+        if (score === 0) {
+            textEl.textContent = t.prob_low;
+            bar.style.background = "linear-gradient(90deg, #95a5a6, #7f8c8d)";
+        } else if (score === 1) {
+            textEl.textContent = t.prob_med;
+            bar.style.background = "linear-gradient(90deg, #f1c40f, #f39c12)";
+        } else if (score === 2) {
+            textEl.textContent = t.prob_high;
+            bar.style.background = "linear-gradient(90deg, #e67e22, #d35400)";
+        } else {
+            textEl.textContent = t.prob_very_high;
+            bar.style.background = "linear-gradient(90deg, #2ecc71, #27ae60)";
+        }
+    }
+
+    window.onload = function() {
+        initCharts();
+        calculateProbability();
+    };
+</script>
+
+</body>
+</html>
